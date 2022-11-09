@@ -14,30 +14,32 @@
 
 # Build the parts of the Qsym backend that are relevant for us
 
-set(QSYM_SOURCE_DIR "qsym/qsym/pintool")
+set(QSYM_SOURCE_DIR "qsym")
 
 function(string_to_list s output_var)
   string(REPLACE " " ";" _output "${s}")
   set(${output_var} ${_output} PARENT_SCOPE)
 endfunction()
 
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/expr__gen.cpp
-  COMMAND python2 gen_expr.py ${CMAKE_CURRENT_BINARY_DIR}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${QSYM_SOURCE_DIR}/codegen
-  COMMENT "Generating Qsym's expr__gen.cpp"
-  VERBATIM
-  DEPENDS
-  ${QSYM_SOURCE_DIR}/codegen/expr.cpp
-  ${QSYM_SOURCE_DIR}/codegen/gen_expr.py)
+# @Info(alekum) do not re-generate the same code again
+#
+# add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/expr__gen.cpp
+#   COMMAND python2 gen_expr.py ${CMAKE_CURRENT_BINARY_DIR}
+#   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${QSYM_SOURCE_DIR}/codegen
+#   COMMENT "Generating Qsym's expr__gen.cpp"
+#   VERBATIM
+#   DEPENDS
+#   ${QSYM_SOURCE_DIR}/codegen/expr.cpp
+#   ${QSYM_SOURCE_DIR}/codegen/gen_expr.py)
 
-add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/expr_builder__gen.cpp
-  COMMAND python2 gen_expr_builder.py ${CMAKE_CURRENT_BINARY_DIR}
-  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${QSYM_SOURCE_DIR}/codegen
-  COMMENT "Generating Qsym's expr__gen.cpp"
-  VERBATIM
-  DEPENDS
-  ${QSYM_SOURCE_DIR}/codegen/expr_builder.cpp
-  ${QSYM_SOURCE_DIR}/codegen/gen_expr_builder.py)
+# add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/expr_builder__gen.cpp
+#   COMMAND python2 gen_expr_builder.py ${CMAKE_CURRENT_BINARY_DIR}
+#   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/${QSYM_SOURCE_DIR}/codegen
+#   COMMENT "Generating Qsym's expr__gen.cpp"
+#   VERBATIM
+#   DEPENDS
+#   ${QSYM_SOURCE_DIR}/codegen/expr_builder.cpp
+#   ${QSYM_SOURCE_DIR}/codegen/gen_expr_builder.py)
 
 # The following part of the CMake file was copied from the 
 # KLEE project. The license for this code is under the same license
@@ -168,8 +170,8 @@ configure CMake with -DZ3_TRUST_SYSTEM_VERSION=on (see also docs/Configuration.t
 endif()
 
 add_library(SymRuntime SHARED
-  ${CMAKE_CURRENT_BINARY_DIR}/expr__gen.cpp
-  ${CMAKE_CURRENT_BINARY_DIR}/expr_builder__gen.cpp
+  ${QSYM_SOURCE_DIR}/expr__gen.cpp
+  ${QSYM_SOURCE_DIR}/expr_builder__gen.cpp
   ${QSYM_SOURCE_DIR}/expr_cache.cpp
   ${QSYM_SOURCE_DIR}/expr_evaluate.cpp
   ${QSYM_SOURCE_DIR}/solver.cpp
@@ -178,8 +180,8 @@ add_library(SymRuntime SHARED
   ${QSYM_SOURCE_DIR}/afl_trace_map.cpp
   ${QSYM_SOURCE_DIR}/allocation.cpp
   ${QSYM_SOURCE_DIR}/call_stack_manager.cpp
-  ${QSYM_SOURCE_DIR}/third_party/llvm/range.cpp
-  ${QSYM_SOURCE_DIR}/third_party/xxhash/xxhash.cpp
+  ${QSYM_SOURCE_DIR}/range.cpp
+  ${QSYM_SOURCE_DIR}/xxhash.cpp
   ${SHARED_RUNTIME_SOURCES}
   Runtime.cpp)
 

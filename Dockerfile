@@ -32,8 +32,12 @@ RUN apt-get update \
         python2 \
         python3-pip \
         zlib1g-dev \
-    && rm -rf /var/lib/apt/lists/*
-RUN pip3 install lit
+    && rm -rf /var/lib/apt/lists/* \
+    && pip3 install lit \
+    && ln -s /usr/bin/llvm-config-10 /usr/bin/llvm-config \
+    && ln -s /usr/bin/clang-10 /usr/bin/clang \
+    && ln -s /usr/bin/clang++-10 /usr/bin/clang++ \
+    && ln -s /usr/bin/FileCheck-10 /usr/bin/FileCheck
 
 # Build AFL.
 RUN git clone -b v2.56b https://github.com/google/AFL.git afl \
