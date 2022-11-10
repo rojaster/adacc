@@ -19,6 +19,7 @@
 #include <limits>
 #include <sstream>
 #include <stdexcept>
+#include <iostream>
 
 namespace {
 
@@ -41,6 +42,17 @@ bool checkFlagString(std::string value) {
 Config g_config;
 
 void loadConfig() {
+  auto* solver_timeout = getenv("SYMCC_SOLVER_TIMEOUT");
+  if (solver_timeout != nullptr) {
+      try {
+          auto converted_timeout = std::stoul(solver_timeout);
+          g_config.kSolverTimeout = converted_timeout;
+      } catch (...) {
+          std::cerr << "Could not resolve user provided solver timeout, use "
+                        "default 15000ms\n";
+      }
+  }
+  
   auto *fullyConcrete = getenv("SYMCC_NO_SYMBOLIC_INPUT");
   if (fullyConcrete != nullptr)
     g_config.fullyConcrete = checkFlagString(fullyConcrete);
@@ -48,17 +60,6 @@ void loadConfig() {
   auto *silent = getenv("SYMCC_SILENT");
   if (silent != nullptr)
     g_config.silent = true;
-
-  auto *solverZ3Timeout = getenv("SYMCC_SOLVER_TIMEOUT");
-  if (solverZ3Timeout != nullptr) {
-    try {
-      g_config.solverTimeout = std::stoul(solverZ3Timeout);
-    } catch(std::invalid_argument &) {
-      std::stringstream msg;
-      msg << "Cant set solver timeout to a non integer\n";
-      throw std::runtime_error(msg.str());
-    }
-  }
 
   auto *outputDir = getenv("SYMCC_OUTPUT_DIR");
   if (outputDir != nullptr)
@@ -83,6 +84,11 @@ void loadConfig() {
   auto *pathModelsFiles = getenv("SYMCC_PATH_MODELS");
   if (pathModelsFiles != nullptr)
     g_config.pathModelsFiles = pathModelsFiles;
+
+  auto* statsFile = getenv("SYMCC_STATS_FILE");
+  if (statsFile != nullptr) {
+      g_config.statsFile = statsFile;
+  }
 
   auto *logFile = getenv("SYMCC_LOG_FILE");
   if (logFile != nullptr)

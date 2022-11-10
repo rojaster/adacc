@@ -529,7 +529,7 @@ void _sym_collect_garbage() {
     return;
 
 #ifndef NDEBUG
-  auto start = std::chrono::high_resolution_clock::now();
+  auto start = std::chrono::steady_clock::now();
   auto startSize = allocatedExpressions.size();
 #endif
 
@@ -544,7 +544,7 @@ void _sym_collect_garbage() {
   }
 
 #ifndef NDEBUG
-  auto end = std::chrono::high_resolution_clock::now();
+  auto end = std::chrono::steady_clock::now();
   auto endSize = allocatedExpressions.size();
 
   if (g_config.silent == false)

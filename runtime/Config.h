@@ -18,6 +18,10 @@
 #include <string>
 
 struct Config {
+  
+  /// @brief Solver Timeout , by default 10 seconds
+  unsigned kSolverTimeout = 15000;
+
   /// do not print symcc output to stdout or stderr
   bool silent = false;
 
@@ -40,8 +44,11 @@ struct Config {
 
   std::string legitFilesDir;
 
+  /// @brief Statistics log file
+  std::string statsFile = "stats.log";
+
   /// The file to log constraint solving information to.
-  std::string logFile = "";
+  std::string logFile = "contraints.log";
 
   /// Do we prune expressions on hot paths?
   bool pruning = false;
