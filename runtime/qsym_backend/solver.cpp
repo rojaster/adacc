@@ -134,7 +134,7 @@ bool Solver::checkAndSave(const std::string& postfix) {
 void Solver::addJcc(ExprRef e, bool taken, ADDRINT pc, bool should_solve) {
   // Save the last instruction pointer for debugging
   last_pc_ = pc;
-#if 1
+#if DEBUG
     std::cerr << "======================================== SOLVER:ADDJCC "
                  "======================================\n";
     std::cerr << e->toString() << std::endl;
@@ -157,9 +157,9 @@ void Solver::addJcc(ExprRef e, bool taken, ADDRINT pc, bool should_solve) {
   if (pc == 0) {
     // If addJcc() is called by special case, then rely on last_interested_
     is_interesting = last_interested_;
-  }
-  else
+  } else {
     is_interesting = isInterestingJcc(e, taken, pc);
+  }
 
   if (is_interesting)
     negatePath(e, taken, should_solve);
@@ -201,10 +201,6 @@ void Solver::addValue(ExprRef e, ADDRINT val) {
 void Solver::addValue(ExprRef e, llvm::APInt val) {
   if (e->isConcrete())
     return;
-
-#ifdef CONFIG_TRACE
-  trace_addValue(e, val);
-#endif
 
   ExprRef expr_val = g_expr_builder->createConstant(val, e->bits());
   ExprRef expr_concrete = g_expr_builder->createBinaryExpr(Equal, e, expr_val);
@@ -402,13 +398,13 @@ void Solver::syncConstraints(ExprRef e) {
             // and
             // processed ExprRef it means node is going to be fully
             // concretized, and we don't have to add them to solver anyway
-            std::cerr << "Processing ... " << node->toString() << std::endl;
+            // std::cerr << "Processing ... " << node->toString() << std::endl;
             if (node->isConcrete()) {
-                std::cerr << "\t\tSkipppp ^^^^^\n";
+                // std::cerr << "\t\tSkipppp ^^^^^\n";
                 ++skipped_constraints;
                 continue;
             }
-            std::cerr << "\t\t Taken, add to solverrr ^^^^^\n";
+            // std::cerr << "\t\t Taken, add to solverrr ^^^^^\n";
 
             if (isRelational(node.get())) {
                 addToSolver(node, true);
@@ -523,7 +519,7 @@ ExprRef Solver::getRangeConstraint(ExprRef e, bool is_unsigned) {
 
 bool Solver::isInterestingJcc(ExprRef rel_expr, bool taken, ADDRINT pc) {
   bool interesting = trace_.isInterestingBranch(pc, taken);
-  // record for other decision
+  // @TODO(alekum): CD additional map that helps to utilize additional instrumentation 
   last_interested_ = interesting;
   return interesting;
 }

@@ -298,6 +298,7 @@ void _sym_initialize(void) {
             << ", solver timeout(ms): " << g_config.kSolverTimeout
             << std::endl;
   g_z3_context = new z3::context{};
+  // @Cleanup(alekum): Inject Config here rather than config properties ?
   g_solver = new Solver(input, g_config.outputDir, g_config.logFile,
                         g_config.statsFile, g_config.aflCoverageMap,
                         g_config.kSolverTimeout);

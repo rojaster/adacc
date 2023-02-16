@@ -460,7 +460,7 @@ impl SymCC {
             .filter_map(|c| c[1].parse::<f64>().ok())
             // associate the integer with a unit
             .map(Duration::from_secs_f64)
-            // get the first one
+            // get the first one <-- in out case we should calculate total_solving_time = solving_time + ... + solving_time ...
             .next()
     }
 
@@ -498,6 +498,7 @@ impl SymCC {
             .env("SYMCC_ENABLE_LINEARIZATION", "1")
             .env("SYMCC_AFL_COVERAGE_MAP", &self.bitmap)
             .env("SYMCC_OUTPUT_DIR", output_dir.as_ref())
+            .env("SYMCC_SOLVER_TIMEOUT", &TIMEOUT.to_string())
             .stdout(Stdio::null())
             .stderr(Stdio::piped()); // capture SMT logs
 
@@ -611,6 +612,7 @@ mod tests {
         );
     }
 
+    // @TODO(alekum): Don't forget to fix this in the main repository 
     #[test]
     fn test_solver_time_parsing() {
         let output = r#"SMT :{ "sync_constraints_time" : 0.00359036 }
