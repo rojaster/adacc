@@ -21,6 +21,7 @@
 
 
 // C++
+/*
 #if __has_include(<filesystem>)
 #define HAVE_FILESYSTEM 1
 #elif __has_include(<experimental/filesystem>)
@@ -28,7 +29,15 @@
 #else
 #error "We need either <filesystem> or the older <experimental/filesystem>."
 #endif
+*/
 
+#ifdef __cpp_lib_filesystem
+#include <filesystem>
+namespace fs = std::filesystem
+#else
+#include <experimental/filesystem>
+namespace fs = std::experimental::filesystem;
+#endif
 
 #include <atomic>
 #include <fstream>
@@ -37,13 +46,13 @@
 #include <map>
 #include <unordered_set>
 
-
+/*
 #if HAVE_FILESYSTEM
 #include <filesystem>
 #else
 #include <experimental/filesystem>
 #endif
-
+*/
 
 #ifdef DEBUG_RUNTIME
 #include <chrono>
@@ -134,14 +143,6 @@ SymExpr registerExpression(const qsym::ExprRef &expr) {
 } // namespace
 
 using namespace qsym;
-
-
-#if HAVE_FILESYSTEM
-namespace fs = std::filesystem;
-#else
-namespace fs = std::experimental::filesystem;
-#endif
-
 
 static int dtor_done = 0;
 
