@@ -170,12 +170,20 @@ public:
     bool isFirst = true;
     os << "{ ";
     for (iterator i = begin(), e = end(); i != e; ++i) {
-      if (isFirst)
+      if (isFirst) {
         isFirst = false;
-      else
+      } else {
         os << ", ";
-
-      os << '[' << i->From().toString(10) << ", " << i->To().toString(10) << ']';
+      }
+// @Info(alekum): Support LLVM API above 12 version
+// Do not to forget to refine this code after finalizing API
+      {
+        llvm::SmallString FromStr, ToStr;
+        i->From().toString(FromStr);
+        i->To().toString(ToStr);
+        os << '[' << FromStr << ", " << ToStr << ']';
+      }     
+      // os << '[' << i->From().toString(10) << ", " << i->To().toString(10) << ']';
     }
     os << " }";
   }
