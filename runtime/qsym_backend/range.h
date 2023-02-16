@@ -6,6 +6,7 @@
 #include <iostream>
 #include <set>
 #include <llvm/ADT/APSInt.h>
+#include <llvm/ADT/SmallString.h>
 #include "pin.H"
 
 namespace qsym {
