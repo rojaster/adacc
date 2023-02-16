@@ -371,7 +371,10 @@ void Expr::addConstraint(Kind kind, llvm::APInt rhs, llvm::APInt adjustment) {
 }
 
 void ConstantExpr::print(ostream& os, [[maybe_unused]] UINT depth) const {
-    os << "0x" << value_.toString(16, false);
+    llvm::SmallString<32> ss;
+    value_.toString(ss, 16, false);
+    os << "0x" << ss.str().str();
+    // os << "0x" << value_.toString(16, false);
 }
 
 void ConcatExpr::print(ostream& os, UINT depth) const {

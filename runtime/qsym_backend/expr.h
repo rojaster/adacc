@@ -521,15 +521,21 @@ class ConstantExpr : public Expr {
     std::string getName() const override { return "Constant"; }
 
     bool printAux(std::ostream& os) const override {
-        os << "value=0x" << value_.toString(16, false) << ", bits=" << bits_;
+        llvm::SmallString<40> ss;
+        value_.toString(ss, 16, false);
+        os << "value=0x" << ss.str().str() << ", bits=" << bits_;
         return true;
     }
 
     z3::expr toZ3ExprRecursively([[maybe_unused]] bool verbose) override {
-        if (value_.getNumWords() == 1)
+        if (value_.getNumWords() == 1) {
             return context_.bv_val((uint64_t)value_.getZExtValue(), bits_);
-        else
-            return context_.bv_val(value_.toString(10, false).c_str(), bits_);
+        } else {
+            llvm::SmallString<40> ss;
+            value_.toString(ss, 10, false);
+            return context_.bv_val(ss.str().str().data(), bits_);
+            // return context_.bv_val(value_.toString(10, false).c_str(), bits_);
+        }
     }
 
     void hashAux(XXH32_state_t* state) override {
