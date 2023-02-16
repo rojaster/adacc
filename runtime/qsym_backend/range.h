@@ -179,7 +179,7 @@ public:
 // @Info(alekum): Support LLVM API above 12 version
 // Do not to forget to refine this code after finalizing API
       {
-        llvm::SmallString FromStr, ToStr;
+        llvm::SmallString<40> FromStr, ToStr;
         i->From().toString(FromStr);
         i->To().toString(ToStr);
         os << '[' << FromStr << ", " << ToStr << ']';
