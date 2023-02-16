@@ -182,7 +182,7 @@ public:
         llvm::SmallString<40> FromStr, ToStr;
         i->From().toString(FromStr);
         i->To().toString(ToStr);
-        os << '[' << FromStr << ", " << ToStr << ']';
+        os << '[' << FromStr.str() << ", " << ToStr.str() << ']';
       }     
       // os << '[' << i->From().toString(10) << ", " << i->To().toString(10) << ']';
     }
