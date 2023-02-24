@@ -308,7 +308,6 @@ void _sym_initialize(void) {
                                     : SymbolicExprBuilder::create();
 }
 
-
 SymExpr _sym_build_integer(uint64_t value, uint8_t bits) {
   // Qsym's API takes uintptr_t, so we need to be careful when compiling for
   // 32-bit systems: the compiler would helpfully truncate our uint64_t to fit

@@ -28,9 +28,6 @@ struct Config {
   /// Should we allow symbolic data in the program?
   bool fullyConcrete = false;
 
-  /// Solver timeout, in seconds.
-  size_t solverTimeout = 10;
-
   /// The directory for storing new outputs.
   std::string outputDir = "/tmp/output";
 
@@ -53,8 +50,14 @@ struct Config {
   /// Do we prune expressions on hot paths?
   bool pruning = false;
 
-  // Is this pure concolic
+  /// Is this pure concolic
   bool is_pure_concolic = false;
+
+  /// Tainted Concolic Execution
+  ///
+  /// TaSex is based on the idea of tainting data involved into symex constraints
+  /// and filtering(or construct only) necessary dependencies for symex.
+  bool taintedConcolic = false; 
 
   /// The AFL coverage map to initialize with.
   ///

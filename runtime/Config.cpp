@@ -77,6 +77,10 @@ void loadConfig() {
   if (isPureConcolic != nullptr)
     g_config.is_pure_concolic = checkFlagString(isPureConcolic);
 
+  auto *taintedConcolic = getenv("SYMCC_TAINTED_CONCOLIC");
+  if(taintedConcolic != nullptr)
+    g_config.taintedConcolic = checkFlagString(taintedConcolic);
+
   auto *legitFilesDir = getenv("SYMCC_LEGIT_FILES");
   if (legitFilesDir != nullptr)
     g_config.legitFilesDir = legitFilesDir;
