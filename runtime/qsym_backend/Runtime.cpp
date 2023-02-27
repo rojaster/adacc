@@ -159,9 +159,9 @@ void __dtor_runtime(void) {
         dtor_done = 1;
 
       // Now let's check if there is a difference in corpus
-      bool should_save = false;
-        if (g_config.silent == false)
-        std::cerr << "Inside of dtor, going through all counters\n";
+      //bool should_save = false;
+      //if (g_config.silent == false)
+      //  std::cerr << "Inside of dtor, going through all counters\n";
         
         // Write the updated counters to our corpus file.
         //
@@ -169,22 +169,22 @@ void __dtor_runtime(void) {
       if (g_config.silent == false)
         std::cerr << "Preparing to write corpus counter\n";
 
-      bool has_had_change = false;
-          for (auto& new_c: counter_map) {
-            uint32_t k,v;
-            k = new_c.first;
-            v = new_c.second;
-            if (old_counter_map.count(k) == 0) {
-              old_counter_map[k] = v;
-              has_had_change = true;
-              //break;
-            }
-            if (old_counter_map.at(k) < v) {
-              old_counter_map[k] = v;
-              has_had_change = true;
-              //break;
-            }
-          }
+      //bool has_had_change = false;
+      for (auto& new_c: counter_map) {
+        uint32_t k,v;
+        k = new_c.first;
+        v = new_c.second;
+        if (old_counter_map.count(k) == 0) {
+          old_counter_map[k] = v;
+          //has_had_change = true;
+          //break;
+        }
+        if (old_counter_map.at(k) < v) {
+          old_counter_map[k] = v;
+          //has_had_change = true;
+          //break;
+        }
+      }
 
 
       //  std::cerr << "Counters we save:\n";
@@ -423,7 +423,7 @@ bool tracemaps_initialised = false;
 // Return false when no saving should be done.
 // Returns true when saving should be done.
 // 
-bool pure_concolic_should_save(SymExpr constraint, int taken,
+bool pure_concolic_should_save([[maybe_unused]] SymExpr constraint, int taken,
                                uintptr_t site_id) {
 
   // Handle the case where the counters have not yet
@@ -710,7 +710,7 @@ UNSUPPORTED(SymExpr _sym_build_float_to_unsigned_integer(SymExpr, uint8_t))
 #undef UNSUPPORTED
 #undef H
 
-static int idx_hop = 0;
+// static int idx_hop = 0;
 
 void _symcc_cov_cb(uint32_t cb_id) {
 //std::cerr << "symcc_cov_cb\n";

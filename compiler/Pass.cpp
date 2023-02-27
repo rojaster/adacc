@@ -31,6 +31,8 @@
 
 using namespace llvm;
 
+
+
 #ifndef NDEBUG
 #define DEBUG(X)                                                               \
   do {                                                                         \
@@ -43,21 +45,15 @@ using namespace llvm;
 char SymbolizePass::ID = 0;
 
 bool SymbolizePass::doInitialization(Module &M) {
-  if (!getenv("SYMCC_SILENT"))
-    errs() << "Symbolizer module init\n";
-  DEBUG(errs() << "Symbolizer module init\n");
+  return SPI.init(M);
+}
 
-  //errs() << "Creating a random number now huh\n"; 
-  srand(time(NULL));
-  int isecret;
-  isecret = rand() % 100000 + 1;
-  //printf("Random number: %d\n", isecret);
-
-
-  if (!getenv("SYMCC_SILENT"))
-    errs() << "Going through the symboliser \n";
-  if (!getenv("SYMCC_SILENT"))
-    errs() << "Analysing filename " << M.getSourceFileName() << "\n";
+bool SymbolizePassImpl::init(Module &M) {
+  if (!getenv("SYMCC_SILENT")) {
+    errs() << "[INFO] Symbolizer module init\n" 
+          << "[INFO] Going through the symboliser \n"
+          << "[INFO] Analysing filename " << M.getSourceFileName() << "\n";
+  }
   // Redirect calls to external functions to the corresponding wrappers and
   // rename internal functions.
   for (auto &function : M.functions()) {
@@ -86,6 +82,10 @@ bool SymbolizePass::doInitialization(Module &M) {
 }
 
 bool SymbolizePass::runOnFunction(Function &F) {
+  return SPI.run(F);
+}
+
+bool SymbolizePassImpl::run(Function &F) {
   auto functionName = F.getName();
   //if (functionName == kSymCtorName)
   if (functionName == "__sym_ctor")
@@ -113,8 +113,7 @@ bool SymbolizePass::runOnFunction(Function &F) {
   std::random_device dev;
   std::mt19937 rng(dev());
   std::uniform_int_distribution<std::mt19937::result_type> dist6(1,1000000000);
-
-  //errs() << "dist6 random number " << dist6(rng) << "\n";
+  
   symbolizer.my_random_number = dist6(rng);
   
   for (auto &basicBlock : F)
@@ -135,12 +134,7 @@ bool SymbolizePass::runOnFunction(Function &F) {
         symbolizer.insertCovs(basicBlock);
     }
   } 
-  //else {
-  //  errs() << "We have no pure concolic execution\n";
-  //}
 
-
-  // DEBUG(errs() << F << '\n');
   assert(!verifyFunction(F, &errs()) &&
          "SymbolizePass produced invalid bitcode");
 

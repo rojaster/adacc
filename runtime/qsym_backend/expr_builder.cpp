@@ -821,13 +821,13 @@ ExprRef SymbolicExprBuilder::createSub(
         // (C + Y) - Z ==> C + (Y - Z)
         return createAdd(l->getChild(0),
             createSub(l->getChild(1), r));
-      }
+      } break;
     case Sub: {
       if (l->getChild(0)->isConstant()) {
         // (C - Y) - Z ==> C - (Y + Z)
         return createSub(l->getChild(0),
             createAdd(l->getChild(1), r));
-      }
+      } break;
     }
   }
 

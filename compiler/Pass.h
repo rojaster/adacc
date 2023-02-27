@@ -15,10 +15,53 @@
 #ifndef PASS_H
 #define PASS_H
 
+#if LLVM_VERSION_MAJOR >= 13
+  #include "llvm/Passes/PassPlugin.h"
+  #include "llvm/Passes/PassBuilder.h"
+  #include "llvm/IR/PassManager.h"
+#else
+  #include "llvm/IR/LegacyPassManager.h"
+#endif
+
 #include <llvm/IR/GlobalVariable.h>
 #include <llvm/IR/ValueMap.h>
 #include <llvm/Pass.h>
 
+
+class SymbolizePassImpl final {
+public:
+  /// Mapping from global variables to their corresponding symbolic expressions.
+  //using GSMap = llvm::ValueMap<llvm::GlobalVariable*, llvm::GlobalVariable*>;
+
+  SymbolizePassImpl() = default;
+  virtual ~SymbolizePassImpl() = default;
+  SymbolizePassImpl(const SymbolizePassImpl&) = delete;
+  SymbolizePassImpl& operator=(const SymbolizePassImpl&) = delete;
+  SymbolizePassImpl(SymbolizePassImpl&&) = delete;
+  SymbolizePassImpl& operator=(SymbolizePassImpl&&) = delete;
+
+  bool init(llvm::Module &M);
+  bool run(llvm::Function &F);
+
+private:
+  //GSMap globalExpressions;
+  //static constexpr char kSymCtorName[] = "__sym_ctor";
+};
+
+
+/// @Information(alekum): Assume we start support NewPM 
+/// Should we keep LegacyPM support?
+#if LLVM_VERSION_MAJOR >=13
+class SymbolizePass : public PassInfoMixin<SymbolizePass> {
+public:
+  SymbolizePass() = default;
+  PreservedAnalysis run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM);
+  PreservedAnalyses run(llvm::Function &M, llvm::FunctionAnalysisManager &FAM);
+  static bool isRequired() { return true; }
+private:
+  SymbolizePassImpl SPI;
+};
+#else
 class SymbolizePass : public llvm::FunctionPass {
 public:
   static char ID;
@@ -27,13 +70,10 @@ public:
 
   bool doInitialization(llvm::Module &M) override;
   bool runOnFunction(llvm::Function &F) override;
-
 private:
-  //static constexpr char kSymCtorName[] = "__sym_ctor";
-
-  /// Mapping from global variables to their corresponding symbolic expressions.
-  llvm::ValueMap<llvm::GlobalVariable *, llvm::GlobalVariable *>
-      globalExpressions;
+  SymbolizePassImpl SPI;
 };
+#endif // LLVM_VERSION_MAJOR
+
 
 #endif
