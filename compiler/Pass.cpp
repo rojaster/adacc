@@ -29,10 +29,6 @@
 
 #include <random>
 
-using namespace llvm;
-
-
-
 #ifndef NDEBUG
 #define DEBUG(X)                                                               \
   do {                                                                         \
@@ -42,15 +38,9 @@ using namespace llvm;
 #define DEBUG(X) ((void)0)
 #endif
 
-char SymbolizePass::ID = 0;
-
-bool SymbolizePass::doInitialization(Module &M) {
-  return SPI.init(M);
-}
-
-bool SymbolizePassImpl::init(Module &M) {
+bool SymbolizePassImpl::init(llvm::Module &M) {
   if (!getenv("SYMCC_SILENT")) {
-    errs() << "[INFO] Symbolizer module init\n" 
+    llvm::errs() << "[INFO] Symbolizer module init\n" 
           << "[INFO] Going through the symboliser \n"
           << "[INFO] Analysing filename " << M.getSourceFileName() << "\n";
   }
@@ -64,28 +54,24 @@ bool SymbolizePassImpl::init(Module &M) {
   }
 
   // Insert a constructor that initializes the runtime and any globals.
-  Function *ctor;
-  std::tie(ctor, std::ignore) = createSanitizerCtorAndInitFunctions(
+  llvm::Function *ctor;
+  std::tie(ctor, std::ignore) = llvm::createSanitizerCtorAndInitFunctions(
       M, "__sym_ctor", "_sym_initialize", {}, {});
       //M, kSymCtorName, "_sym_initialize", {}, {});
-  appendToGlobalCtors(M, ctor, 0);
+  llvm::appendToGlobalCtors(M, ctor, 0);
 
   // Add a dtor function for cleaning up paths.
-  IRBuilder<> IRB(M.getContext());
-  Type *void_type = IRB.getVoidTy();
-  FunctionType *FT = FunctionType::get(void_type, void_type, false);
-  Function::Create(FT, Function::ExternalLinkage, "__dtor_runtime", M);
+  llvm::IRBuilder<> IRB(M.getContext());
+  llvm::Type *void_type = IRB.getVoidTy();
+  llvm::FunctionType *FT = llvm::FunctionType::get(void_type, void_type, false);
+  llvm::Function::Create(FT, llvm::Function::ExternalLinkage, "__dtor_runtime", M);
 
-  appendToGlobalDtors(M, M.getFunction("__dtor_runtime"), 0);
+  llvm::appendToGlobalDtors(M, M.getFunction("__dtor_runtime"), 0);
 
   return true;
 }
 
-bool SymbolizePass::runOnFunction(Function &F) {
-  return SPI.run(F);
-}
-
-bool SymbolizePassImpl::run(Function &F) {
+bool SymbolizePassImpl::run(llvm::Function &F) {
   auto functionName = F.getName();
   //if (functionName == kSymCtorName)
   if (functionName == "__sym_ctor")
@@ -95,20 +81,15 @@ bool SymbolizePassImpl::run(Function &F) {
      return false;
   }
 
-  DEBUG(errs() << "Symbolizing function ");
-  DEBUG(errs().write_escaped(functionName) << '\n');
+  llvm::errs() << "[INFO] Symbolizing function ";
+  llvm::errs().write_escaped(functionName) << '\n';
 
-  SmallVector<Instruction *, 0> allInstructions;
+  llvm::SmallVector<llvm::Instruction *, 0> allInstructions;
   allInstructions.reserve(F.getInstructionCount());
-  for (auto &I : instructions(F))
-    allInstructions.push_back(&I);
+  for (auto &I : instructions(F)) allInstructions.push_back(&I);
 
-  //errs() << "Creating the symbolizer\n";
   Symbolizer symbolizer(*F.getParent());
   symbolizer.symbolizeFunctionArguments(F);
-  //errs() << "My random number: " << symbolizer.my_random_number++ << "\n";
-
-
   
   std::random_device dev;
   std::mt19937 rng(dev());
@@ -129,14 +110,38 @@ bool SymbolizePassImpl::run(Function &F) {
   auto *pureConcolic= getenv("SYMCC_PC");
   if (pureConcolic != nullptr) {
     if (!getenv("SYMCC_SILENT"))
-      errs() << "We are instrumenting for pure concolic execution\n";
+      llvm::errs() << "[INFO] We are instrumenting for pure concolic execution\n";
     for (auto &basicBlock : F) {
         symbolizer.insertCovs(basicBlock);
     }
   } 
 
-  assert(!verifyFunction(F, &errs()) &&
-         "SymbolizePass produced invalid bitcode");
+  assert(!llvm::verifyFunction(F, &llvm::errs()) &&
+         "[ERROR] SymbolizePass produced invalid bitcode");
 
   return true;
 }
+
+#if LLVM_VERSION_MAJOR >=13
+llvm::PreservedAnalyses SymbolizePass::run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM){
+  llvm::errs() << "[INFO] Analysing filename " << M.getSourceFileName() << "\n";
+  SPI.init(M);
+  return llvm::PreservedAnalyses::none();
+}
+llvm::PreservedAnalyses SymbolizePass::run(llvm::Function &F, llvm::FunctionAnalysisManager &FAM){
+  llvm::errs() << "[INFO] Analyzing function: "<< F.getName() 
+                << " with  number of arguments: " << F.arg_size() << "\n";
+  SPI.run(F);
+  return llvm::PreservedAnalyses::none();
+}
+#else
+char SymbolizePass::ID = 0;
+
+bool SymbolizePass::doInitialization(llvm::Module &M) {
+  return SPI.init(M);
+}
+
+bool SymbolizePass::runOnFunction(llvm::Function &F) {
+  return SPI.run(F);
+}
+#endif // LLVM_VERSION_MAJOR

@@ -70,6 +70,8 @@ fi
 echo "stdlib_cflags: ${stdlib_cflags}" 
 echo "stdlib_ldflags: ${stdlib_ldflags}" 
 
+# To use with new pass manager
+# -fpass-plugin="$pass"
 exec $compiler                                  \
      -Xclang -load -Xclang "$pass"              \
      $stdlib_cflags                             \

@@ -15,19 +15,17 @@
 #ifndef PASS_H
 #define PASS_H
 
-#if LLVM_VERSION_MAJOR >= 13
-  #include "llvm/Passes/PassPlugin.h"
-  #include "llvm/Passes/PassBuilder.h"
-  #include "llvm/IR/PassManager.h"
-#else
-  #include "llvm/IR/LegacyPassManager.h"
-#endif
+#include "llvm/Passes/PassPlugin.h"
+#include "llvm/Passes/PassBuilder.h"
+#include "llvm/IR/PassManager.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/Transforms/Utils.h"
+#include "llvm/IR/GlobalVariable.h"
+#include "llvm/IR/ValueMap.h"
+#include "llvm/Pass.h"
 
-#include <llvm/IR/GlobalVariable.h>
-#include <llvm/IR/ValueMap.h>
-#include <llvm/Pass.h>
-
-
+/// @Cleanup(alekum) maybe we should hide this in a namespace...
 class SymbolizePassImpl final {
 public:
   /// Mapping from global variables to their corresponding symbolic expressions.
@@ -35,10 +33,10 @@ public:
 
   SymbolizePassImpl() = default;
   virtual ~SymbolizePassImpl() = default;
-  SymbolizePassImpl(const SymbolizePassImpl&) = delete;
-  SymbolizePassImpl& operator=(const SymbolizePassImpl&) = delete;
-  SymbolizePassImpl(SymbolizePassImpl&&) = delete;
-  SymbolizePassImpl& operator=(SymbolizePassImpl&&) = delete;
+  SymbolizePassImpl(const SymbolizePassImpl&) = default;
+  SymbolizePassImpl& operator=(const SymbolizePassImpl&) = default;
+  SymbolizePassImpl(SymbolizePassImpl&&) = default;
+  SymbolizePassImpl& operator=(SymbolizePassImpl&&) = default;
 
   bool init(llvm::Module &M);
   bool run(llvm::Function &F);
@@ -51,17 +49,19 @@ private:
 
 /// @Information(alekum): Assume we start support NewPM 
 /// Should we keep LegacyPM support?
-#if LLVM_VERSION_MAJOR >=13
-class SymbolizePass : public PassInfoMixin<SymbolizePass> {
-public:
-  SymbolizePass() = default;
-  PreservedAnalysis run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM);
-  PreservedAnalyses run(llvm::Function &M, llvm::FunctionAnalysisManager &FAM);
+#if LLVM_VERSION_MAJOR >= 13
+
+class SymbolizePass : public llvm::PassInfoMixin<SymbolizePass> {
+public: 
+  llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM);
+  llvm::PreservedAnalyses run(llvm::Function &M, llvm::FunctionAnalysisManager &FAM);
   static bool isRequired() { return true; }
 private:
   SymbolizePassImpl SPI;
 };
+
 #else
+
 class SymbolizePass : public llvm::FunctionPass {
 public:
   static char ID;
@@ -73,6 +73,7 @@ public:
 private:
   SymbolizePassImpl SPI;
 };
+
 #endif // LLVM_VERSION_MAJOR
 
 

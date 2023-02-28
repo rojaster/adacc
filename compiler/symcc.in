@@ -38,7 +38,8 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-     #-fsanitize-coverage="inline-8bit-counters" \
+# To run with new pass manager use this command 
+# -fpass-plugin="$pass"
 exec $compiler                                  \
      -Xclang -load -Xclang "$pass"              \
      "$@"                                       \
