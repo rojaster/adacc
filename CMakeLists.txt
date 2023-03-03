@@ -170,39 +170,13 @@ foreach (flag ${_llvm_cpp_flags_list})
   endif()
 endforeach()
 
-#find_package(LLVM REQUIRED CONFIG)
-
-#message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-#message(STATUS "Using LLVMConfig.cmake from ${LLVM_DIR}")
-
-#if (${LLVM_VERSION_MAJOR} LESS 8 OR ${LLVM_VERSION_MAJOR} GREATER 11)
-#  message(WARNING "The software has been developed for LLVM 8 through 11; \
-#it is unlikely to work with other versions!")
-#endif()
-
 add_definitions(${LLVM_DEFINITIONS})
 include_directories(SYSTEM ${LLVM_INCLUDE_DIRS})
 
-#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 \
-# @Info(alekum)
-# This is not gonna work if your default compiler is GCC, so, is not portable at all.
-# Plus it is better to decide that we don't support old crap...and just go 
-# as though standard 17 is our everything
-#EXECUTE_PROCESS( COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE clang_full_version_string )
-#string (REGEX REPLACE ".*clang version ([0-9]+\\.[0-9]+).*" "\\1" CLANG_VERSION_STRING ${clang_full_version_string})
-#if (CLANG_VERSION_STRING VERSION_LESS 11.0)
-#    message("clang version is not larger than 11. Using -Wc++17-extensions")
-#    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wc++17-extensions  \
-#    -Wredundant-decls -Wcast-align -Wmissing-include-dirs -Wswitch-default \
-#    -Wextra -Wall -Winvalid-pch -Wredundant-decls -Wformat=2 \
-#    -Wmissing-format-attribute -Wformat-nonliteral ")
-#else()
-#    message("clang version is larger than 11. using -std=c++17")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 \
-    -Wredundant-decls -Wcast-align -Wmissing-include-dirs -Wswitch-default \
-    -Wextra -Wall -Winvalid-pch -Wredundant-decls -Wformat=2 \
-    -Wmissing-format-attribute -Wformat-nonliteral ")
-#endif()
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 \
+-Wredundant-decls -Wcast-align -Wmissing-include-dirs -Wswitch-default \
+-Wextra -Wall -Winvalid-pch -Wredundant-decls -Wformat=2 \
+-Wmissing-format-attribute -Wformat-nonliteral ")
 
 # Mark nodelete to work around unload bug in upstream LLVM 5.0+
 set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-z,nodelete")

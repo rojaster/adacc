@@ -53,8 +53,13 @@ private:
 
 class SymbolizePass : public llvm::PassInfoMixin<SymbolizePass> {
 public: 
+  // @Cleanup(alekum): How to recreate doInitialization from LegacyPM ?
+  // Module run registered for OptimizerLastEP and Function run for Vectorizer...
+  // Put init phase under pre-vect part, though, it
+  // might be completely wrong assumption
   llvm::PreservedAnalyses run(llvm::Module &M, llvm::ModuleAnalysisManager &MAM);
   llvm::PreservedAnalyses run(llvm::Function &M, llvm::FunctionAnalysisManager &FAM);
+
   static bool isRequired() { return true; }
 private:
   SymbolizePassImpl SPI;

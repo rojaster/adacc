@@ -20,6 +20,7 @@ builtin_libcc="${SYMCC_LIBCXX_PATH:-@SYM_RUNTIME_DIR@/../../../../libcxx_native-
 pass="${SYMCC_PASS_DIR:-@CMAKE_CURRENT_BINARY_DIR@}/libSymbolize.so"
 libcxx_var=SYMCC_LIBCXX_PATH
 compiler="${SYMCC_CLANGPP:-@CLANGPP_BINARY@}"
+llvm_version="${LLVM_VERSION_MAJOR:-@LLVM_VERSION_MAJOR@}"
 
 # Find out if we're cross-compiling for a 32-bit architecture
 runtime_dir="$runtime_64bit_dir"
@@ -70,14 +71,26 @@ fi
 echo "stdlib_cflags: ${stdlib_cflags}" 
 echo "stdlib_ldflags: ${stdlib_ldflags}" 
 
-# To use with new pass manager
-# -fpass-plugin="$pass"
+# To run with new pass manager use this command 
+# -fpass-plugin="$pass", we assume that starting from LLVM13+
+# we are using new pass manager, as there is no reason to use legacy
+# @Cleanup(alekum) Provide a better support via wrapper for the compiler
+echo "[INFO] We are using clang/llvm $llvm_version."
+
+if [ "$llvm_version" -ge 13 ]; then
 exec $compiler                                  \
-     -Xclang -load -Xclang "$pass"              \
-     $stdlib_cflags                             \
+     -fpass-plugin="$pass"                      \
      "$@"                                       \
-     $stdlib_ldflags                            \
      -L"$runtime_dir"                           \
      -lSymRuntime                               \
      -Wl,-rpath,"$runtime_dir"                  \
      -Qunused-arguments
+else
+exec $compiler                                  \
+     -Xclang -load -Xclang "$pass"              \
+     "$@"                                       \
+     -L"$runtime_dir"                           \
+     -lSymRuntime                               \
+     -Wl,-rpath,"$runtime_dir"                  \
+     -Qunused-arguments
+fi

@@ -18,6 +18,7 @@ runtime_64bit_dir="${SYMCC_RUNTIME_DIR:-@SYM_RUNTIME_DIR@}"
 runtime_32bit_dir="${SYMCC_RUNTIME32_DIR:-@SYM_RUNTIME_32BIT_DIR@}"
 pass="${SYMCC_PASS_DIR:-@CMAKE_CURRENT_BINARY_DIR@}/libSymbolize.so"
 compiler="${SYMCC_CLANG:-@CLANG_BINARY@}"
+llvm_version="${LLVM_VERSION_MAJOR:-@LLVM_VERSION_MAJOR@}"
 
 # Find out if we're cross-compiling for a 32-bit architecture
 runtime_dir="$runtime_64bit_dir"
@@ -39,7 +40,20 @@ if [ $# -eq 0 ]; then
 fi
 
 # To run with new pass manager use this command 
-# -fpass-plugin="$pass"
+# -fpass-plugin="$pass", we assume that starting from LLVM13+
+# we are using new pass manager, as there is no reason to use legacy
+# @Cleanup(alekum) Provide a better support via wrapper for the compiler
+echo "[INFO] We are using clang/llvm $llvm_version."
+
+if [ "$llvm_version" -ge 13 ]; then
+exec $compiler                                  \
+     -fpass-plugin="$pass"                      \
+     "$@"                                       \
+     -L"$runtime_dir"                           \
+     -lSymRuntime                               \
+     -Wl,-rpath,"$runtime_dir"                  \
+     -Qunused-arguments
+else
 exec $compiler                                  \
      -Xclang -load -Xclang "$pass"              \
      "$@"                                       \
@@ -47,3 +61,4 @@ exec $compiler                                  \
      -lSymRuntime                               \
      -Wl,-rpath,"$runtime_dir"                  \
      -Qunused-arguments
+fi

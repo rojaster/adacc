@@ -19,16 +19,23 @@
 // Though if we are in Vectorizer Pipeline we need go to MPM level of granularity at least for SymbolizePass::init(...)
 llvm::PassPluginLibraryInfo getSymbolizePassPluginInfo() {
     return {LLVM_PLUGIN_API_VERSION, "symbolize", LLVM_VERSION_STRING, [](llvm::PassBuilder &PB){
+  
+#if LLVM_VERSION_MAJOR <= 13
+        using OptimizationLevel = typename llvm::PassBuilder::OptimizationLevel;
+#else
+        using OptimizationLevel = typename llvm::OptimizationLevel;
+#endif
+
         llvm::errs() << "[INFO] Registering our SymbolizePass...\n";
         PB.registerVectorizerStartEPCallback([](llvm::FunctionPassManager &FPM,
-                                                llvm::PassBuilder::OptimizationLevel level){
+                                                OptimizationLevel level){
                                                     FPM.addPass(SymbolizePass());
                                                 });
         // @Info(alekum): there is no exact mapping on legacy pass manager's EP_EnableOnOptLevel0
         // we are use this and should experiment with pipeline(registerOptimizerEarlyEPCallback,
         // registerScalarOptimizerLateEPCallback....)
         PB.registerOptimizerLastEPCallback([](llvm::ModulePassManager &MPM,
-                                              llvm::PassBuilder::OptimizationLevel level){
+                                              OptimizationLevel level){
                                                 MPM.addPass(SymbolizePass());
                                               });
     }};
