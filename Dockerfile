@@ -20,24 +20,24 @@ FROM ubuntu:22.04 AS builder
 # Install dependencies
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-    clang-12 \
+    clang-15 \
     cmake \
     g++ \
     git \
     libz3-dev \
     curl \
-    llvm-12-dev \
-    llvm-12-tools \
+    llvm-15-dev \
+    llvm-15-tools \
     ninja-build \
     python3 \
     python3-pip \
     zlib1g-dev \
     && rm -rf /var/lib/apt/lists/* \
     && pip3 install lit \
-    && ln -s /usr/bin/llvm-config-12 /usr/bin/llvm-config \
-    && ln -s /usr/bin/clang-12 /usr/bin/clang \
-    && ln -s /usr/bin/clang++-12 /usr/bin/clang++ \
-    && ln -s /usr/bin/FileCheck-12 /usr/bin/FileCheck
+    && ln -s /usr/bin/llvm-config-15 /usr/bin/llvm-config \
+    && ln -s /usr/bin/clang-15 /usr/bin/clang \
+    && ln -s /usr/bin/clang++-15 /usr/bin/clang++ \
+    && ln -s /usr/bin/FileCheck-15 /usr/bin/FileCheck
 
 # Install Rust from rustup
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -49,7 +49,7 @@ RUN git clone https://github.com/AFLplusplus/AFLplusplus.git -b stable afl \
 
 # Download the LLVM sources already so that we don't need to get them again when
 # SymCC changes
-RUN git clone -b llvmorg-12.0.1 --depth 1 https://github.com/llvm/llvm-project.git /llvm_source
+RUN git clone -b llvmorg-15.0.1 --depth 1 https://github.com/llvm/llvm-project.git /llvm_source
 
 # Build a version of SymCC with the simple backend to compile libc++
 COPY . /adacc_source
@@ -95,12 +95,14 @@ FROM ubuntu:22.04
 RUN apt-get update \
     && DEBIAN_FRONTEND=noninteractive apt-get install -y \
         build-essential \
-        clang-12 \
+        clang-15 \
         g++ \
-        libllvm12 \
+        libllvm15 \
         zlib1g \
         sudo \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -s /usr/bin/clang-15 /usr/bin/clang \
+    && ln -s /usr/bin/clang++-15 /usr/bin/clang++
 
 COPY --from=builder /adacc_build /adacc_build
 COPY --from=builder /root/.cargo/bin/symcc_fuzzing_helper /adacc_build/
@@ -110,9 +112,9 @@ COPY --from=builder /afl /afl
 
 ENV PATH /adacc_build:$PATH
 ENV AFL_PATH /afl
-ENV AFL_CC clang-12
-ENV AFL_CXX clang++-12
+ENV AFL_CC clang-15
+ENV AFL_CXX clang++-15
 ENV SYMCC_LIBCXX_PATH=/libcxx_adacc_install
 
-COPY sample.cpp /home/ubuntu/
+COPY test/ /home/ubuntu/
 RUN mkdir /tmp/output
